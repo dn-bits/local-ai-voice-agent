@@ -1,54 +1,28 @@
-::: {align="center"}
-`<img src="./frontend/.github/assets/template-light.webp" alt="Local AI Voice Agent" width="80" />`{=html}
-```{=html}
-<h1>
-```
-Local AI Voice Agent
-```{=html}
-</h1>
-```
-```{=html}
-<p>
-```
-A low-latency voice assistant combining local speech recognition and a
-local language model with ElevenLabs text-to-speech.
-```{=html}
-</p>
-```
-```{=html}
-<p>
-```
-Powered by
-`<a href="https://docs.livekit.io/agents?utm_source=local-voice-ai">`{=html}LiveKit
-Agents`</a>`{=html}.
-```{=html}
-</p>
-```
-:::
+# Local AI Voice Agent
 
-Local AI Voice Agent combines streaming speech recognition, a local
-language model, and ElevenLabs text-to-speech in one supervised
-application. Speech recognition and language-model inference can run
-locally; generated speech is handled by ElevenLabs and therefore
-requires internet access and an API key.
+A low-latency voice assistant combining local speech recognition and a local language model with ElevenLabs text-to-speech.
 
-> \[!TIP\] The Jetson profile supports real-time voice conversations on
-> a Jetson Orin Nano.
+Powered by [LiveKit Agents](https://docs.livekit.io/agents/).
+
+Local AI Voice Agent combines streaming speech recognition, a local language model, and ElevenLabs text-to-speech in one supervised application. Speech recognition and language-model inference can run locally; speech generation uses ElevenLabs and requires internet access and an API key.
+
+> [!TIP]
+> The Jetson profile supports real-time voice conversations on a Jetson Orin Nano.
 
 The application includes:
 
--   A browser voice interface.
--   Local streaming speech recognition with Nemotron Q8.
--   Local language models through llama.cpp.
--   Natural-sounding speech generation through ElevenLabs.
--   Automatic setup for CPU, NVIDIA, Apple Silicon, and Jetson.
--   A remote-client mode for devices that run without a local browser.
+- A browser voice interface.
+- Local streaming speech recognition with Nemotron Q8.
+- Local language models through llama.cpp.
+- Speech generation through ElevenLabs.
+- Automatic setup for CPU, NVIDIA, Apple Silicon, and Jetson.
+- A remote-client mode for devices that run without a local browser.
 
 ## Requirements
 
 Clone this repository before you start:
 
-``` bash
+```bash
 git clone https://github.com/dn-bits/local-ai-voice-agent.git
 cd local-ai-voice-agent
 ```
@@ -57,79 +31,60 @@ The setup launcher needs Python 3.10 or later.
 
 Install the additional tools for your platform:
 
-  -----------------------------------------------------------------------
-  Platform      Requirement
-  ------------- ---------------------------------------------------------
-  Linux CPU     Docker Engine with Docker Compose
-
-  Desktop       Docker Engine, Docker Compose, and NVIDIA Container
-  NVIDIA        Toolkit
-
-  Jetson Orin   JetPack 6.2, L4T 36.4, and the NVIDIA Docker runtime
-
-  Apple Silicon Python 3.11--3.13, `uv`, `livekit-server`, and
-                `llama-server`
-  -----------------------------------------------------------------------
+| Platform       | Requirement                                                  |
+| -------------- | ------------------------------------------------------------ |
+| Linux CPU      | Docker Engine with Docker Compose                            |
+| Desktop NVIDIA | Docker Engine, Docker Compose, and NVIDIA Container Toolkit  |
+| Jetson Orin    | JetPack 6.2, L4T 36.4, and the NVIDIA Docker runtime         |
+| Apple Silicon  | Python 3.11–3.13, `uv`, `livekit-server`, and `llama-server` |
 
 On Apple Silicon, install the native server tools with Homebrew:
 
-``` bash
+```bash
 brew install livekit llama.cpp
 uv sync --extra ml --extra dev
 ```
 
-The first start needs an internet connection. Later starts reuse
-downloaded model files and native components. Docker also reuses its
-image layers.
+The first start needs an internet connection. Later starts reuse downloaded
+model files and native components. Docker also reuses its image layers.
 
 ## Quick start
 
 Start the setup launcher:
 
-``` bash
+```bash
 python3 run.py
 ```
 
 The launcher shows the detected hardware, memory budget, and recommended
 models. Accept the recommendation or select a different profile.
 
-When the application is ready, open <http://localhost:8080>. When the
-browser requests microphone access, permit it.
+When the application is ready, open <http://localhost:8080>. When the browser
+requests microphone access, permit it.
 
 For a non-interactive start, run:
 
-``` bash
+```bash
 python3 run.py start --profile auto --yes
 ```
 
 ## Model profiles
 
-Automatic selection uses the device type to select a runtime. It then
-uses the memory budget to select a model profile.
+Automatic selection uses the device type to select a runtime. It then uses the
+memory budget to select a model profile.
 
-  ---------------------------------------------------------------------------------------
-  Profile                  Memory Language       Context Speech          Text-to-speech
-                           target model                  recognition     
-  ------------------- ----------- ------------ --------- --------------- ----------------
-  `lean`                About 4.7 Qwen3 1.7B          4K Nemotron Q8     ElevenLabs
-                               GB                                        
+| Profile           | Memory target | Language model | Context | Speech recognition | Voice       |
+| ----------------- | ------------: | -------------- | ------: | ------------------ | ----------- |
+| `lean`            |  About 4.7 GB | Qwen3 1.7B     |      4K | Nemotron Q8        | ElevenLabs     |
+| `jetson-realtime` |  About 4.7 GB | Qwen3 1.7B     |      4K | Nemotron Q8        | ElevenLabs     |
+| `compact`         |  About 5.5 GB | Gemma 4 E2B    |      4K | Nemotron Q8        | ElevenLabs     |
+| `balanced`        |  About 6.5 GB | Gemma 4 E2B    |     16K | Nemotron Q8        | ElevenLabs     |
 
-  `jetson-realtime`     About 4.7 Qwen3 1.7B          4K Nemotron Q8     ElevenLabs
-                               GB                                        
+The memory values are planning targets, not hard limits. The automatic mode
+keeps memory available for the operating system and active conversations.
 
-  `compact`             About 5.5 Gemma 4 E2B         4K Nemotron Q8     ElevenLabs
-                               GB                                        
-
-  `balanced`            About 6.5 Gemma 4 E2B        16K Nemotron Q8     ElevenLabs
-                               GB                                        
-  ---------------------------------------------------------------------------------------
-
-The memory values are planning targets, not hard limits. The automatic
-mode keeps memory available for the operating system and active
-conversations.
-
-All profiles use the native streaming Nemotron Q8 runtime. The launcher
-selects the CPU, CUDA, or Metal runtime for the device.
+All profiles use the native streaming Nemotron Q8 runtime. The launcher selects
+the CPU, CUDA, or Metal runtime for the device.
 
 The default language is English. For English, the application uses the
 English-specific Nemotron model. For another supported language, it uses
@@ -137,49 +92,47 @@ Nemotron 3.5.
 
 Set the language in `.env.local`:
 
-``` env
+```env
 STT_LANGUAGE=fr-FR
 ```
 
-If the speaker language can change, use `STT_LANGUAGE=auto`. This value
-selects the multilingual model. Whisper remains available as a manual
-fallback:
+If the speaker language can change, use `STT_LANGUAGE=auto`. This value selects
+the multilingual model. Whisper remains available as a manual fallback:
 
-``` env
+```env
 STT_PROVIDER=whisper
 ```
 
-Whisper waits for a complete utterance before transcription. Nemotron
-sends partial transcripts while the user speaks, so Nemotron has lower
-voice latency.
+Whisper waits for a complete utterance before transcription. Nemotron sends
+partial transcripts while the user speaks, so Nemotron has lower voice latency.
 
 To set a memory budget, use `--memory-gb`:
 
-``` bash
+```bash
 python3 run.py start --profile auto --memory-gb 5.5 --yes
 ```
 
 ## Use a Jetson as the voice server
 
-The recommended Jetson setup runs the voice stack on the Jetson and the
-browser interface on a laptop. This gives the browser a `localhost`
-address for microphone access.
+The recommended Jetson setup runs the voice stack on the Jetson and the browser
+interface on a laptop. This gives the browser a `localhost` address for
+microphone access.
 
-The Jetson setup needs approximately 29 GB of free disk space. The first
-build compiles native components, so it takes longer than later builds.
+The Jetson setup needs approximately 29 GB of free disk space. The first build
+compiles native components, so it takes longer than later builds.
 
 ### 1. Configure the Jetson address
 
 On the Jetson, find its LAN address:
 
-``` bash
+```bash
 ip -4 -brief address
 ```
 
-Create `.env.local` in the repository root. Replace the example address
-with the Jetson address:
+Create `.env.local` in the repository root. Replace the example address with
+the Jetson address:
 
-``` env
+```env
 LIVEKIT_URL=ws://192.168.1.40:7880
 LIVEKIT_NODE_IP=192.168.1.40
 MANAGE_LIVEKIT=1
@@ -189,28 +142,28 @@ MANAGE_LIVEKIT=1
 
 The laptop needs these ports on the Jetson:
 
-  Port     Protocol   Use
-  -------- ---------- -------------------------------
-  `8080`   TCP        Connection details and status
-  `7880`   TCP        LiveKit connection
-  `7881`   TCP        WebRTC fallback media
-  `7882`   UDP        WebRTC media
+| Port   | Protocol | Use                           |
+| ------ | -------- | ----------------------------- |
+| `8080` | TCP      | Connection details and status |
+| `7880` | TCP      | LiveKit connection            |
+| `7881` | TCP      | WebRTC fallback media         |
+| `7882` | UDP      | WebRTC media                  |
 
-If UFW is active, permit only the local subnet. Replace the example
-subnet with your local subnet:
+If UFW is active, permit only the local subnet. Replace the example subnet with
+your local subnet:
 
-``` bash
+```bash
 sudo ufw status
 sudo ufw allow proto tcp from 192.168.1.0/24 to any port 7880,7881,8080 comment 'local voice ai'
 sudo ufw allow proto udp from 192.168.1.0/24 to any port 7882 comment 'local voice ai media'
 ```
 
-CAUTION: Do not expose these ports to the public internet. The default
-service uses development credentials.
+CAUTION: Do not expose these ports to the public internet. The default service
+uses development credentials.
 
 ### 3. Start the Jetson
 
-``` bash
+```bash
 python3 run.py start --profile auto --memory-gb 5.5 --yes
 ```
 
@@ -220,96 +173,64 @@ Wait until the launcher reports that all services are ready.
 
 Install Node.js 20 on the laptop. Then run:
 
-``` bash
+```bash
 git clone https://github.com/dn-bits/local-ai-voice-agent.git
 cd local-ai-voice-agent
 corepack enable
 python3 run.py client --server 192.168.1.40
 ```
 
-Open <http://localhost:3000>. The client installs its frontend packages
-on the first start.
+Open <http://localhost:3000>. The client installs its frontend packages on the
+first start.
 
 ## Common commands
 
-  ----------------------------------------------------------------------------
-  Command                                   Purpose
-  ----------------------------------------- ----------------------------------
-  `python3 run.py`                          Configure and start the
-                                            application
+| Command                                 | Purpose                               |
+| --------------------------------------- | ------------------------------------- |
+| `python3 run.py`                        | Configure and start the application   |
+| `python3 run.py configure`              | Select a different profile            |
+| `python3 run.py plan`                   | Show the selected runtime and models  |
+| `python3 run.py status`                 | Show service readiness                |
+| `python3 run.py logs`                   | Follow the application logs           |
+| `python3 run.py down`                   | Stop the Docker application           |
+| `python3 run.py client --server <host>` | Run the interface for a remote server |
 
-  `python3 run.py configure`                Select a different profile
-
-  `python3 run.py plan`                     Show the selected runtime and
-                                            models
-
-  `python3 run.py status`                   Show service readiness
-
-  `python3 run.py logs`                     Follow the application logs
-
-  `python3 run.py down`                     Stop the Docker application
-
-  `python3 run.py client --server <host>`   Run the interface for a remote
-                                            server
-  ----------------------------------------------------------------------------
-
-The launcher saves the selected profile in `.local-voice-ai.toml`. This
-file is local to the device and is not committed to Git.
+The launcher saves the selected profile in `.local-voice-ai.toml`. This file is
+local to the device and is not committed to Git.
 
 ## Configuration
 
-Put device-specific configuration in `.env.local`. This file overrides
-the selected profile and the defaults in `.env`.
+Put device-specific configuration in `.env.local`. This file overrides the
+selected profile and the defaults in `.env`.
 
 Common values include:
 
-  ---------------------------------------------------------------------------
-  Value                  Purpose
-  ---------------------- ----------------------------------------------------
-  `LIVEKIT_URL`          LiveKit server address
+| Value             | Purpose                                            |
+| ----------------- | -------------------------------------------------- |
+| `LIVEKIT_URL`     | LiveKit server address                             |
+| `LIVEKIT_NODE_IP` | LAN address advertised by a managed LiveKit server |
+| `LLAMA_MODEL`     | Model name used by the agent                       |
+| `LLAMA_HF_REPO`   | GGUF model repository and quantization             |
+| `STT_PROVIDER`    | Speech engine. The default is `nemotron-cpp`       |
+| `STT_LANGUAGE`    | Speech language. The default is `en`               |
+| `ELEVENLABS_API_KEY` | API key for ElevenLabs text-to-speech             |
+| `TTS_VOICE`       | Voice selection, if supported by the current configuration |
+| `WAKE_WORD=1`     | Require “Hey LiveKit” before the agent listens     |
+| `WEB_PORT`        | Browser interface port. The default is `8080`      |
 
-  `LIVEKIT_NODE_IP`      LAN address advertised by a managed LiveKit server
-
-  `LLAMA_MODEL`          Model name used by the agent
-
-  `LLAMA_HF_REPO`        GGUF model repository and quantization
-
-  `STT_PROVIDER`         Speech engine. The default is `nemotron-cpp`
-
-  `STT_LANGUAGE`         Speech language. The default is `en`
-
-  `ELEVENLABS_API_KEY`   API key for ElevenLabs text-to-speech
-
-  `TTS_VOICE`            Voice selection, if supported by the current
-                         configuration
-
-  `WAKE_WORD=1`          Require "Hey LiveKit" before the agent listens
-
-  `WEB_PORT`             Browser interface port. The default is `8080`
-  ---------------------------------------------------------------------------
-
-Keep credentials in `.env.local` or another untracked local environment
-file. Never commit API keys. Check the configuration code for the exact
-supported options.
+Keep credentials in `.env.local` or another untracked local environment file. Never commit API keys.
 
 ### Use an external service
 
-Set a remote base URL to replace one local service. The supervisor does
-not start the matching local process.
+Set a remote base URL to replace one local service. The supervisor does not
+start the matching local process.
 
-  -----------------------------------------------------------------------
-  Service           Configuration
-  ----------------- -----------------------------------------------------
-  LiveKit Cloud     `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
-                    `LIVEKIT_API_SECRET`
-
-  Language model    `LLAMA_BASE_URL`, `LLAMA_MODEL`, `LLAMA_API_KEY`
-
-  Speech            `STT_BASE_URL`, `STT_MODEL`, `STT_API_KEY`
-  recognition       
-
-  Speech generation ElevenLabs API key and the configured TTS voice
-  -----------------------------------------------------------------------
+| Service            | Configuration                                          |
+| ------------------ | ------------------------------------------------------ |
+| LiveKit Cloud      | `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` |
+| Language model     | `LLAMA_BASE_URL`, `LLAMA_MODEL`, `LLAMA_API_KEY`       |
+| Speech recognition | `STT_BASE_URL`, `STT_MODEL`, `STT_API_KEY`             |
+| Speech generation  | ElevenLabs API key and the configured TTS voice       |
 
 Store API keys in `.env.local`. Do not commit this file.
 
@@ -317,80 +238,76 @@ Store API keys in `.env.local`. Do not commit this file.
 
 ### A model shows several gigabytes during startup
 
-The startup value is the model cache size on disk. It is not the memory
-used by the process.
+The startup value is the model cache size on disk. It is not the memory used by
+the process.
 
 ### The laptop cannot connect to the Jetson
 
 From the laptop, request the Jetson status:
 
-``` bash
+```bash
 curl -fsS http://192.168.1.40:8080/api/status | python3 -m json.tool
 ```
 
-If this command times out, make sure that the firewall permits the
-laptop subnet.
+If this command times out, make sure that the firewall permits the laptop
+subnet.
 
 ### The interface connects without audio
 
-Make sure that UDP port `7882` is open between the laptop and the
-Jetson.
+Make sure that UDP port `7882` is open between the laptop and the Jetson.
 
 ### A service does not become ready
 
 Show the current status and logs:
 
-``` bash
+```bash
 python3 run.py status
 python3 run.py logs
 ```
 
 ## Local development
 
-Local development needs Python 3.11--3.13, `uv`, Node.js 20, pnpm,
+Local development needs Python 3.11–3.13, `uv`, Node.js 20, pnpm,
 `livekit-server`, and `llama-server`.
 
 Install the Python environment:
 
-``` bash
+```bash
 uv sync --extra ml --extra dev
 .venv/bin/python -m local_voice_ai.agent download-files
 ```
 
 Start the application:
 
-``` bash
+```bash
 .venv/bin/python -m local_voice_ai serve
 ```
 
-This reads `.env.local`, then the saved profile in
-`.local-voice-ai.toml`, then `.env`, so it starts with the same settings
-`python3 run.py` would use.
+This reads `.env.local`, then the saved profile in `.local-voice-ai.toml`, then
+`.env`, so it starts with the same settings `python3 run.py` would use.
 
 ### Serve it to other computers
 
-`serve` binds the web port to every interface, but it tells browsers to
-connect to LiveKit on loopback, which no other machine can reach. Name
-the address they should use instead:
+`serve` binds the web port to every interface, but it tells browsers to connect
+to LiveKit on loopback, which no other machine can reach. Name the address they
+should use instead:
 
-``` bash
+```bash
 # .env.local
 LIVEKIT_PUBLIC_URL=ws://192.168.1.40:7880
 ```
 
-That is the only variable needed: the ICE address follows it, and
-LiveKit is still started here because `LIVEKIT_URL` remains on loopback.
-Set `LIVEKIT_URL` itself only to use a LiveKit you run elsewhere, such
-as LiveKit Cloud.
+That is the only variable needed: the ICE address follows it, and LiveKit is
+still started here because `LIVEKIT_URL` remains on loopback. Set `LIVEKIT_URL`
+itself only to use a LiveKit you run elsewhere, such as LiveKit Cloud.
 
-`serve` does not host the web interface, so connect from the other
-computer with `python3 run.py client --server 192.168.1.40`, which needs
-Node.js and pnpm there but not Docker.
+`serve` does not host the web interface, so connect from the other computer
+with `python3 run.py client --server 192.168.1.40`, which needs Node.js and
+pnpm there but not Docker.
 
-If you change the frontend, start its development server in another
-terminal:
+If you change the frontend, start its development server in another terminal:
 
-``` bash
+```bash
 corepack enable
 pnpm --dir frontend install --frozen-lockfile
 pnpm --dir frontend dev
@@ -398,37 +315,31 @@ pnpm --dir frontend dev
 
 Run the automated tests:
 
-``` bash
+```bash
 .venv/bin/python -m pytest -q
 pnpm --dir frontend build
 ```
 
 ## Security
 
-The default configuration is for local development and trusted private
-networks. It does not provide authentication for local model endpoints.
-Although speech recognition and language-model inference can run
-locally, text sent to ElevenLabs for speech generation is processed by
-that external service.
+The default configuration is for local development and trusted private networks. It does not provide authentication for local model endpoints. Speech sent to ElevenLabs for generation is processed by that external service.
 
--   Keep `.env.local` out of Git.
--   Limit firewall rules to the local subnet.
--   Do not publish the LiveKit or model ports directly to the internet.
--   Use authentication and TLS before you expose the application through
-    a public service.
+- Keep `.env.local` out of Git.
+- Limit firewall rules to the local subnet.
+- Do not publish the LiveKit or model ports directly to the internet.
+- Use authentication and TLS before you expose the application through a
+  public service.
 
 ## Credits
 
--   [LiveKit](https://livekit.io/)
--   [LiveKit Agents](https://docs.livekit.io/agents/)
--   [NVIDIA Nemotron
-    Speech](https://huggingface.co/nvidia/nemotron-speech-streaming-en-0.6b)
--   [NVIDIA Nemotron 3.5
-    ASR](https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b)
--   [NVIDIA NeMo-Speech.cpp](https://github.com/NVIDIA/NeMo-Speech.cpp)
--   [llama.cpp](https://github.com/ggml-org/llama.cpp)
--   [Gemma 4](https://huggingface.co/unsloth/gemma-4-E2B-it-qat-GGUF)
--   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
--   [ElevenLabs](https://elevenlabs.io/)
+- [LiveKit](https://livekit.io/)
+- [LiveKit Agents](https://docs.livekit.io/agents/)
+- [NVIDIA Nemotron Speech](https://huggingface.co/nvidia/nemotron-speech-streaming-en-0.6b)
+- [NVIDIA Nemotron 3.5 ASR](https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b)
+- [NVIDIA NeMo-Speech.cpp](https://github.com/NVIDIA/NeMo-Speech.cpp)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp)
+- [Gemma 4](https://huggingface.co/unsloth/gemma-4-E2B-it-qat-GGUF)
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+- [ElevenLabs](https://elevenlabs.io/)
 
-
+Questions and feature requests are welcome through [GitHub Issues](https://github.com/dn-bits/local-ai-voice-agent/issues).
