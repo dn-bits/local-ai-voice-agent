@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-voice-ai"
+version = "0.1.0"
+description = "Local voice AI assistant: a single supervised process bundling LiveKit Agents, llama.cpp, Nemotron STT, and Kokoro TTS."
+requires-python = ">=3.11"
+
+dependencies = [
+    # Agent framework
+    "livekit-agents[silero,turn-detector,openai]~=1.3",
+    "livekit-plugins-noise-cancellation~=0.2",
+    "livekit-api>=0.8",
+    "livekit-wakeword>=0.2",  # optional wake word gate (numpy + onnxruntime only)
+    "python-dotenv",
+    # Supervisor + token-mint API
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "pydantic>=2",
+    # Nemotron STT (full deps live behind 'stt' extra to avoid forcing torch
+    # into every venv during dev)
+    "numpy",
+    "soundfile",
+    "python-multipart",
+    # Spoken-number normalisation for STT output (see local_voice_ai/textnorm).
+    "text2num",
+    "livekit-plugins-elevenlabs>=1.5.11",
+    "torch>=2.12.0",
+]
+
+[project.optional-dependencies]
+# Heavy ML deps — installed in production runtime, optional for editing/CI.
+ml = [
+    "torch",
+    "torchaudio",
+    "nemo-toolkit[asr]",
+    "kokoro>=0.9",
+    "kokoro-onnx>=0.5",
+    "huggingface_hub",
+]
+# Whisper fallback (faster-whisper) — only when STT_PROVIDER=whisper.
+# (vox-box was unusable here: it pins aiofiles==23.2.1, which conflicts with
+# livekit-agents, so the extra could never install alongside [ml].)
+whisper = [
+    "faster-whisper>=1.0",
+]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+]
+
+[project.scripts]
+local-voice-ai = "local_voice_ai.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["local_voice_ai*"]
+
+[tool.setuptools.package-data]
+local_voice_ai = ["profiles.json"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "A", "C4", "UP", "SIM", "RUF"]
+ignore = ["E501"]
